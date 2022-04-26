@@ -21,7 +21,7 @@ namespace profiles
                     temp += c;
                 }
             }
-
+            Console.WriteLine("finished lexing");
             return Lexed;
         }
     }

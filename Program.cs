@@ -36,16 +36,45 @@ namespace profiles
                 Console.WriteLine(req.UserAgent);
 
                 List<Token> Lexed = Lexer.Lex(req.Url?.AbsolutePath);
+                
                 if (req.HttpMethod == "GET" && Lexed.Count >= 2 && Lexed[0].Str == "profile")
                 {
-                    string TargetUser = Lexed[1].Str;
-                    if (database.GetSingleDatabaseEntry("username", TargetUser, out BsonDocument TargetUserDocument))
+                    StreamReader reader = new StreamReader(req.InputStream);
+                    string bodyString = await reader.ReadToEndAsync();
+                    dynamic body = JsonConvert.DeserializeObject(bodyString)!;
+                    
+                    string AskingToken;
+                    try
                     {
-                        Response.Success(resp, "Profile provided", TargetUserDocument.GetElement("name"), TargetUserDocument.GetElement("ProfilePicture"));
+                        AskingToken = ((string) body.Askingusername).Trim();
+                    }
+                    catch
+                    {
+                        AskingToken = "";
+                    }
+
+                    string AskingUserid = WebToken.GetIdFromToken(AskingToken);
+                    string TargetUser = Lexed[1].Str;
+                    // check if user asking have to permission de to so (for now to have the permission you just have to exist)
+                    if (database.GetSingleDatabaseEntry("_id",new BsonObjectId(AskingUserid), out BsonDocument AskingUserDocument))
+                    {
+                        // check if target user exist in DB
+                        if (database.GetSingleDatabaseEntry("username", TargetUser, out BsonDocument TargetUserDocument))
+                        {
+                            //build the data of the response request (a json file stringified)
+                            string Avatar = TargetUserDocument.GetElement("Avatar").Value.AsString;
+                            string bio = TargetUserDocument.GetElement("Bio").Value.AsString;
+                            
+                            Response.Success(resp, "Profile provided",Response.BuildData(TargetUser,Avatar,bio));
+                        }
+                        else
+                        {
+                            Response.Fail(resp, "User not found");
+                        }
                     }
                     else
                     {
-                        Response.Fail(resp, "User not found");
+                        Response.Fail(resp, "Unauthorized");
                     }
                 }
                 else
@@ -54,16 +83,16 @@ namespace profiles
                 }
                 
                 
-                string jsonString = JsonConvert.SerializeObject(response);
-                byte[] data = Encoding.UTF8.GetBytes(jsonString);
-
-                resp.ContentType = "application/json";
-                resp.ContentEncoding = Encoding.UTF8;
-                resp.ContentLength64 = data.LongLength;
-
-                // Write out to the response stream (asynchronously), then close it
-                await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                resp.Close();
+                /* string jsonString = JsonConvert.SerializeObject(response);
+                 byte[] data = Encoding.UTF8.GetBytes(jsonString);
+ 
+                 resp.ContentType = "application/json";
+                 resp.ContentEncoding = Encoding.UTF8;
+                 resp.ContentLength64 = data.LongLength;
+ 
+                 // Write out to the response stream (asynchronously), then close it
+                 await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                 resp.Close();*/
             }
         }
 

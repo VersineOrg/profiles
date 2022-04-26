@@ -2,11 +2,11 @@ using System;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace profiles
-{
+namespace profiles;
 
-    public class ResponseFormat
+public class ResponseFormat
     {
         public String status { get; set; }
         public String message { get; set; }
@@ -62,5 +62,16 @@ namespace profiles
                 // ignored
             }
         }
+
+        public static string BuildData(string username, string Avatar, string bio)
+        {
+            JObject data =
+                new JObject(
+                    new JProperty("user",
+                        new JObject(
+                            new JProperty("name", username),
+                            new JProperty("Avatar", Avatar),
+                            new JProperty("bio", bio))));
+            return data.ToString();
+        }
     }
-}
