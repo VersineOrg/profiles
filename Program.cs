@@ -36,7 +36,6 @@ namespace profiles
                 Console.WriteLine(req.UserAgent);
 
                 List<Token> Lexed = Lexer.Lex(req.Url?.AbsolutePath);
-                
                 if (req.HttpMethod == "GET" && Lexed.Count >= 2 && Lexed[0].Str == "profile")
                 {
                     StreamReader reader = new StreamReader(req.InputStream);
@@ -44,16 +43,10 @@ namespace profiles
                     dynamic body = JsonConvert.DeserializeObject(bodyString)!;
                     
                     string AskingToken;
-                    try
-                    {
-                        AskingToken = ((string) body.Askingusername).Trim();
-                    }
-                    catch
-                    {
-                        AskingToken = "";
-                    }
-
+                    
+                    AskingToken = ((string) body.token).Trim() ?? "";
                     string AskingUserid = WebToken.GetIdFromToken(AskingToken);
+                    
                     string TargetUser = Lexed[1].Str;
                     // check if user asking have to permission de to so (for now to have the permission you just have to exist)
                     if (database.GetSingleDatabaseEntry("_id",new BsonObjectId(AskingUserid), out BsonDocument AskingUserDocument))
@@ -62,10 +55,12 @@ namespace profiles
                         if (database.GetSingleDatabaseEntry("username", TargetUser, out BsonDocument TargetUserDocument))
                         {
                             //build the data of the response request (a json file stringified)
-                            string Avatar = TargetUserDocument.GetElement("Avatar").Value.AsString;
-                            string bio = TargetUserDocument.GetElement("Bio").Value.AsString;
+                            string Avatar = TargetUserDocument.GetElement("avatar").Value.AsString;
+                            string bio = TargetUserDocument.GetElement("bio").Value.AsString;
+                            string color = TargetUserDocument.GetElement("color").Value.AsString;
+                            string banner = TargetUserDocument.GetElement("banner").Value.AsString;
                             
-                            Response.Success(resp, "Profile provided",Response.BuildData(TargetUser,Avatar,bio));
+                            Response.Success(resp, "Profile provided",Response.BuildData(TargetUser,Avatar,bio,banner,color));
                         }
                         else
                         {
@@ -79,20 +74,10 @@ namespace profiles
                 }
                 else
                 {
+                    Console.WriteLine(Lexed[0]);
                     Response.Fail(resp, "invalid body");
                 }
-                
-                
-                /* string jsonString = JsonConvert.SerializeObject(response);
-                 byte[] data = Encoding.UTF8.GetBytes(jsonString);
- 
-                 resp.ContentType = "application/json";
-                 resp.ContentEncoding = Encoding.UTF8;
-                 resp.ContentLength64 = data.LongLength;
- 
-                 // Write out to the response stream (asynchronously), then close it
-                 await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                 resp.Close();*/
+                resp.Close();
             }
         }
 

@@ -13,15 +13,18 @@ namespace profiles
             {
                 if (c == '/')
                 {
-                    Lexed.Add(new Token(temp));
-                    temp = "";
+                    if (temp != "")
+                    {
+                        Lexed.Add(new Token(temp));
+                        temp = "";
+                    }
                 }
                 else
                 {
                     temp += c;
                 }
             }
-            Console.WriteLine("finished lexing");
+            Lexed.Add(new Token(temp));
             return Lexed;
         }
     }
