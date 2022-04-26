@@ -1,39 +1,25 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 
-namespace posts
+
+namespace profiles
 {
-    
-    // Default Schema for a Http Response
-    public class Response
-    {
-        public String success { get; set; }
-        public String message { get; set; }
-    }
-    
-   }
     class HttpServer
     {
-        
+
         public static HttpListener? Listener;
 
-        public static async Task HandleIncomingConnections(IConfigurationRoot config)
+        public static async Task HandleIncomingConnections(IConfigurationRoot config, EasyMango.EasyMango database)
         {
-
-            // Connect to the MongoDB Database
-            /* 
-            string connectionString = config.GetValue<String>("MongoDB");
-            MongoClientSettings settings = MongoClientSettings.FromConnectionString(connectionString);
-            MongoClient client = new MongoClient(settings);
-            IMongoDatabase database = client.GetDatabase("UsersDB");
-            BsonClassMap.RegisterClassMap<User>();
-            IMongoCollection<User> collection = database.GetCollection<User>("users");
-            Console.WriteLine("Database connected");
-            */
-            
-            
-            
             while (true)
             {
                 // Will wait here until we hear from a connection
@@ -49,23 +35,35 @@ namespace posts
                 Console.WriteLine(req.UserHostName);
                 Console.WriteLine(req.UserAgent);
 
-                
-                    posts.Response response = new posts.Response()
+                List<Token> Lexed = Lexer.Lex(req.Url?.AbsolutePath);
+                if (req.HttpMethod == "GET" && Lexed.Count >= 2 && Lexed[0].Str == "profile")
+                {
+                    string TargetUser = Lexed[1].Str;
+                    if (database.GetSingleDatabaseEntry("username", TargetUser, out BsonDocument TargetUserDocument))
                     {
-                        success = "true",
-                        message = "200"
-                    };
-                    
-                    string jsonString = JsonConvert.SerializeObject(response);
-                    byte[] data = Encoding.UTF8.GetBytes(jsonString);
-                    
-                    resp.ContentType = "application/json";
-                    resp.ContentEncoding = Encoding.UTF8;
-                    resp.ContentLength64 = data.LongLength;
-                    
-                    // Write out to the response stream (asynchronously), then close it
-                    await resp.OutputStream.WriteAsync(data, 0, data.Length);
-                    resp.Close();    
+                        Response.Success(resp, "Profile provided", TargetUserDocument.GetElement("name"), TargetUserDocument.GetElement("ProfilePicture"));
+                    }
+                    else
+                    {
+                        Response.Fail(resp, "User not found");
+                    }
+                }
+                else
+                {
+                    Response.Fail(resp, "invalid body");
+                }
+                
+                
+                string jsonString = JsonConvert.SerializeObject(response);
+                byte[] data = Encoding.UTF8.GetBytes(jsonString);
+
+                resp.ContentType = "application/json";
+                resp.ContentEncoding = Encoding.UTF8;
+                resp.ContentLength64 = data.LongLength;
+
+                // Write out to the response stream (asynchronously), then close it
+                await resp.OutputStream.WriteAsync(data, 0, data.Length);
+                resp.Close();
             }
         }
 
@@ -79,7 +77,7 @@ namespace posts
                     .AddJsonFile("appsettings.json", true)
                     .AddEnvironmentVariables()
                     .Build();
-            
+
             // Create a Http server and start listening for incoming connections
             string url = "http://*:" + config.GetValue<String>("Port") + "/";
             Listener = new HttpListener();
@@ -87,11 +85,20 @@ namespace posts
             Listener.Start();
             Console.WriteLine("Listening for connections on {0}", url);
 
+            string connectionString = config.GetValue<String>("connectionString");
+            string databaseNAme = config.GetValue<String>("databaseName");
+            string collectionName = config.GetValue<String>("collectionName");
+
+
+            // Create a new EasyMango database
+            EasyMango.EasyMango database = new EasyMango.EasyMango(connectionString, databaseNAme, collectionName);
+
             // Handle requests
-            Task listenTask = HandleIncomingConnections(config);
+            Task listenTask = HandleIncomingConnections(config, database);
             listenTask.GetAwaiter().GetResult();
 
             // Close the listener
             Listener.Close();
         }
     }
+}
