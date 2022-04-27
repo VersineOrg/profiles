@@ -19,7 +19,7 @@ This is an example of a request to this micro service:
 
 http://hostname:port/profile/username
 
-Method:GET
+Method:POST
 
 BODY:
 {

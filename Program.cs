@@ -36,7 +36,7 @@ namespace profiles
                 Console.WriteLine(req.UserAgent);
 
                 List<Token> Lexed = Lexer.Lex(req.Url?.AbsolutePath);
-                if (req.HttpMethod == "GET" && Lexed.Count >= 2 && Lexed[0].Str == "profile")
+                if (req.HttpMethod == "POST" && Lexed.Count >= 2 && Lexed[0].Str == "profile")
                 {
                     StreamReader reader = new StreamReader(req.InputStream);
                     string bodyString = await reader.ReadToEndAsync();
