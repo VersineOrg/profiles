@@ -69,8 +69,8 @@ public class ResponseFormat
                 new JObject(
                     new JProperty("user",
                         new JObject(
-                            new JProperty("name", username),
-                            new JProperty("Avatar", Avatar),
+                            new JProperty("username", username),
+                            new JProperty("avatar", Avatar),
                             new JProperty("bio", bio),
                             new JProperty("banner", banner),
                             new JProperty("color", color),
