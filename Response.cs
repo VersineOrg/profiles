@@ -63,7 +63,7 @@ public class ResponseFormat
             }
         }
 
-        public static string BuildData(string username, string Avatar, string bio,string banner,string color)
+        public static string BuildData(string username, string Avatar, string bio,string banner,string color,string id)
         {
             JObject data =
                 new JObject(
@@ -73,7 +73,9 @@ public class ResponseFormat
                             new JProperty("Avatar", Avatar),
                             new JProperty("bio", bio),
                             new JProperty("banner", banner),
-                            new JProperty("color", color))));
+                            new JProperty("color", color),
+                            new JProperty("id",id))));
+            
             return JsonConvert.SerializeObject(data);
         }
     }

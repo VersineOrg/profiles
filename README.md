@@ -25,10 +25,7 @@ Here the user gives his Token to authenticate himself as legitimate asker for th
 The response:
 This is an example of response:
 
-{
-    "status": "success",
-    "message": "Profile provided",
-    "data": "{\"user\":{\"name\":\"pkngr\",\"Avatar\":\"https://i.imgur.com/k7eDNwW.jpg\",\"bio\":\"Hey, I'm using Versine!\",\"banner\":\"https://images7.alphacoders.com/421/thumb-1920-421957.jpg\",\"color\":\"28DBB7\"}}"
+"{\"user\":{\"name\":\"pkngr\",\"Avatar\":\"https://google.com/img/48294.png\",\"bio\":\"j'aime les frites\",\"banner\":\"https://images7.alphacoders.com/421/thumb-1920-421957.jpg\",\"color\":\"28DBB7\",\"id\":\"62681793d46324c3919b2311\"}}"
 }
 
 Features to implement in the future:

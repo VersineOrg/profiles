@@ -42,9 +42,7 @@ namespace profiles
                     string bodyString = await reader.ReadToEndAsync();
                     dynamic body = JsonConvert.DeserializeObject(bodyString)!;
                     
-                    string AskingToken;
-                    
-                    AskingToken = ((string) body.token).Trim() ?? "";
+                    string AskingToken = ((string) body.token).Trim() ?? "";
                     string AskingUserid = WebToken.GetIdFromToken(AskingToken);
                     
                     string TargetUser = Lexed[1].Str;
@@ -59,8 +57,9 @@ namespace profiles
                             string bio = TargetUserDocument.GetElement("bio").Value.AsString;
                             string color = TargetUserDocument.GetElement("color").Value.AsString;
                             string banner = TargetUserDocument.GetElement("banner").Value.AsString;
+                            string id = TargetUserDocument.GetElement("_id").Value.ToString();
                             
-                            Response.Success(resp, "Profile provided",Response.BuildData(TargetUser,Avatar,bio,banner,color));
+                            Response.Success(resp, "Profile provided",Response.BuildData(TargetUser,Avatar,bio,banner,color,id));
                         }
                         else
                         {
@@ -74,7 +73,6 @@ namespace profiles
                 }
                 else
                 {
-                    Console.WriteLine(Lexed[0]);
                     Response.Fail(resp, "invalid body");
                 }
                 resp.Close();
