@@ -1,3 +1,6 @@
+# The Profiles microservice is archived and isn't used in versine anymore.
+#
+#
 #############################################################
 #                         Profiles                          #
 #############################################################
